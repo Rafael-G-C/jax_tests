@@ -23,7 +23,7 @@ import analytical
 )
 def test_grad(x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b):
     ref_grad = analytical.gradient(x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b)
-    jax_grad = jt3.get_grad(3, x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b)
+    jax_grad = jt3.get_grad(6, x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b)
     assert jax_grad == pt.approx(ref_grad)
 
 
@@ -46,5 +46,5 @@ def test_grad(x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b):
 )
 def test_hessian(x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b):
     ref_hess = analytical.hessian(x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b)
-    jax_hess = jt3.get_hessian(3, x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b)
+    jax_hess = jt3.get_hessian(6, x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b)
     assert jax_hess == pt.approx(ref_hess)
