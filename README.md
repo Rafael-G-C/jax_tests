@@ -11,5 +11,5 @@ $ deactivate
 
 To run the tests:
 ```
-$ python -m pytest tests/
+$ python -m pytest -v tests/
 ```
