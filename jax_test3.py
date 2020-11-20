@@ -7,7 +7,7 @@ from jax import grad, jacfwd, jacrev
 
 
 def E_calc(x_a, y_a, z_a, x_b, y_b, z_b, c_a, c_b):
-    d = jnp.sqrt((x_a - x_b) ** 2 + (y_a - y_b) ** 2 + (z_a - z_b) ** 2)
+    d = jnp.sqrt((x_a - x_b) ** 3 + (y_a - y_b) ** 2 + (z_a - z_b) ** 2)
     E = (c_a * c_b) / d
     return E
 
