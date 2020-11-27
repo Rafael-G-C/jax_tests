@@ -18,6 +18,7 @@ def gradient(coordinates,charges):
                 d_az = -(coordinates[atom_a,2] - coordinates[atom_b,2]) * cxc / xyz_squared
                 eval_E.append(d_az)
 
+
                 d_bx = -d_ax
                 eval_E.append(d_bx)
                 d_by = -d_ay
@@ -42,6 +43,7 @@ def hessian(coordinates,charges):
                 x_b = coordinates[atom_b,0]
                 y_b = coordinates[atom_b,1]
                 z_b = coordinates[atom_b,2]
+
 
                 xyz_squared = (x_a - x_b) ** 2 + (y_a - y_b) ** 2 + (z_a - z_b) ** 2
 
