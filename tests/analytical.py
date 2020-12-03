@@ -9,6 +9,7 @@ def gradient(coordinates,charges):
         for atom_b in range(number_coordinates):
             if atom_a < atom_b:
                 cxc = charges[atom_a] * charges[atom_b]
+
                 xyz_32 = np.linalg.norm(coordinates[atom_a, :] - coordinates[atom_b, :])**3
 
                 eval_E[atom_a,0] += -(coordinates[atom_a,0] - coordinates[atom_b,0]) * cxc / xyz_32
@@ -37,6 +38,7 @@ def hessian(coordinates,charges):
                 x_b = coordinates[atom_b,0]
                 y_b = coordinates[atom_b,1]
                 z_b = coordinates[atom_b,2]
+
 
                 xyz_squared = (x_a - x_b) ** 2 + (y_a - y_b) ** 2 + (z_a - z_b) ** 2
 
