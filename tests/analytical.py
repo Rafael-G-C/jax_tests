@@ -4,28 +4,23 @@ import numpy as np
 def gradient(coordinates,charges):
     """Computes the gradient."""
     number_coordinates = len(coordinates)
-    eval_E = []
+    eval_E = np.zeros_like(coordinates)
     for atom_a in range(number_coordinates):
         for atom_b in range(number_coordinates):
             if atom_a < atom_b:
                 cxc = charges[atom_a] * charges[atom_b]
-                xyz_squared = ((coordinates[atom_a,0] - coordinates[atom_b,0]) ** 2 + (coordinates[atom_a,1] - coordinates[atom_b,1]) ** 2 + (coordinates[atom_a,2] - coordinates[atom_b,2]) ** 2) ** (3 / 2)
+                xyz_32 = np.linalg.norm(coordinates[atom_a, :] - coordinates[atom_b, :])**3
 
-                d_ax = -(coordinates[atom_a,0] - coordinates[atom_b,0]) * cxc / xyz_squared
-                eval_E.append(d_ax)
-                d_ay = -(coordinates[atom_a,1] - coordinates[atom_b,1]) * cxc / xyz_squared
-                eval_E.append(d_ay)
-                d_az = -(coordinates[atom_a,2] - coordinates[atom_b,2]) * cxc / xyz_squared
-                eval_E.append(d_az)
+                eval_E[atom_a,0] += -(coordinates[atom_a,0] - coordinates[atom_b,0]) * cxc / xyz_32
+                
+                eval_E[atom_a,1] += -(coordinates[atom_a,1] - coordinates[atom_b,1]) * cxc / xyz_32
+                eval_E[atom_a,2] += -(coordinates[atom_a,2] - coordinates[atom_b,2]) * cxc / xyz_32
 
-                d_bx = -d_ax
-                eval_E.append(d_bx)
-                d_by = -d_ay
-                eval_E.append(d_by)
-                d_bz = -d_az
-                eval_E.append(d_bz)
+                eval_E[atom_b,0] += -eval_E[atom_a,0]
+                eval_E[atom_b,1] += -eval_E[atom_a,1]
+                eval_E[atom_b,2] += -eval_E[atom_a,2]
 
-    return np.array(eval_E)
+    return eval_E
 
 
 def hessian(coordinates,charges):
@@ -107,5 +102,6 @@ def hessian(coordinates,charges):
                 eval_E.append(d_bzbz)
 
     return np.array(eval_E)
-a_gradient = hessian(np.array([[1.0,2.0,3.0],[2.0,1.0,3.0],[3.0,1.0,2.0]]),[1.0,1.0,1.0])
+
+a_gradient = gradient(np.array([[2.0,3.0,2.0],[1.0,2.0,3.0]]),np.array([1.0,1.0]))
 print(a_gradient)
