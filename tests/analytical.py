@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def gradient(coordinates,charges):
+def gradient(coordinates, charges):
     """Computes the gradient."""
     number_coordinates = len(coordinates)
     eval_E = np.zeros_like(coordinates)
@@ -10,21 +10,29 @@ def gradient(coordinates,charges):
             if atom_a < atom_b:
                 cxc = charges[atom_a] * charges[atom_b]
 
-                xyz_32 = np.linalg.norm(coordinates[atom_a, :] - coordinates[atom_b, :])**3
+                xyz_32 = (
+                    np.linalg.norm(coordinates[atom_a, :] - coordinates[atom_b, :]) ** 3
+                )
 
-                eval_E[atom_a,0] += -(coordinates[atom_a,0] - coordinates[atom_b,0]) * cxc / xyz_32
-                
-                eval_E[atom_a,1] += -(coordinates[atom_a,1] - coordinates[atom_b,1]) * cxc / xyz_32
-                eval_E[atom_a,2] += -(coordinates[atom_a,2] - coordinates[atom_b,2]) * cxc / xyz_32
+                eval_E[atom_a, 0] += (
+                    -(coordinates[atom_a, 0] - coordinates[atom_b, 0]) * cxc / xyz_32
+                )
 
-                eval_E[atom_b,0] += -eval_E[atom_a,0]
-                eval_E[atom_b,1] += -eval_E[atom_a,1]
-                eval_E[atom_b,2] += -eval_E[atom_a,2]
+                eval_E[atom_a, 1] += (
+                    -(coordinates[atom_a, 1] - coordinates[atom_b, 1]) * cxc / xyz_32
+                )
+                eval_E[atom_a, 2] += (
+                    -(coordinates[atom_a, 2] - coordinates[atom_b, 2]) * cxc / xyz_32
+                )
+
+                eval_E[atom_b, 0] += -eval_E[atom_a, 0]
+                eval_E[atom_b, 1] += -eval_E[atom_a, 1]
+                eval_E[atom_b, 2] += -eval_E[atom_a, 2]
 
     return eval_E
 
 
-def hessian(coordinates,charges):
+def hessian(coordinates, charges):
     """Computes the Hessian."""
     number_coordinates = len(coordinates)
     eval_E = []
@@ -32,13 +40,12 @@ def hessian(coordinates,charges):
         for atom_b in range(number_coordinates):
             if atom_a < atom_b:
                 cxc = charges[atom_a] * charges[atom_b]
-                x_a = coordinates[atom_a,0]
-                y_a = coordinates[atom_a,1]
-                z_a = coordinates[atom_a,2]
-                x_b = coordinates[atom_b,0]
-                y_b = coordinates[atom_b,1]
-                z_b = coordinates[atom_b,2]
-
+                x_a = coordinates[atom_a, 0]
+                y_a = coordinates[atom_a, 1]
+                z_a = coordinates[atom_a, 2]
+                x_b = coordinates[atom_b, 0]
+                y_b = coordinates[atom_b, 1]
+                z_b = coordinates[atom_b, 2]
 
                 xyz_squared = (x_a - x_b) ** 2 + (y_a - y_b) ** 2 + (z_a - z_b) ** 2
 
@@ -105,5 +112,8 @@ def hessian(coordinates,charges):
 
     return np.array(eval_E)
 
-a_gradient = gradient(np.array([[2.0,3.0,2.0],[1.0,2.0,3.0]]),np.array([1.0,1.0]))
+
+a_gradient = gradient(
+    np.array([[2.0, 3.0, 2.0], [1.0, 2.0, 3.0]]), np.array([1.0, 1.0])
+)
 print(a_gradient)

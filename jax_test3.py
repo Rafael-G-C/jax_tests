@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from jax import grad, jacfwd, jacrev
 
 
-def E_calc(coordinates,charges):
+def E_calc(coordinates, charges):
     energy = 0.0
     natoms = charges.size
     for A in range(natoms):
@@ -16,9 +16,9 @@ def E_calc(coordinates,charges):
     return energy
 
 
-def get_grad(coordinates,charges):
+def get_grad(coordinates, charges):
     g_E_calc = grad(E_calc)
-    eval_E = g_E_calc(coordinates,charges)
+    eval_E = g_E_calc(coordinates, charges)
     return eval_E
 
 
