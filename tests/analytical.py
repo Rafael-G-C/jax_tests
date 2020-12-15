@@ -111,9 +111,3 @@ def hessian(coordinates, charges):
                 eval_E.append(d_bzbz)
 
     return np.array(eval_E)
-
-
-a_gradient = gradient(
-    np.array([[2.0, 3.0, 2.0], [1.0, 2.0, 3.0]]), np.array([1.0, 1.0])
-)
-print(a_gradient)
