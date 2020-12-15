@@ -22,13 +22,10 @@ def get_grad(coordinates, charges):
     return eval_E
 
 
-""" work in progress 
-def get_hessian(coordinates,charges):
-    g_E_calc = grad(E_calc)
-    gg_E_calc = grad(g_E_calc)
-    
-    eval_E = gg_E_calc(coordinates,charges)
-    return eval_E """
+def get_hessian(coordinates, charges):
+    gg_E_calc = jacfwd(jacrev(E_calc))
+    eval_E = gg_E_calc(coordinates, charges)
+    return eval_E
 
 
 """

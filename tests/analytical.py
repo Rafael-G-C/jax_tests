@@ -3,84 +3,146 @@ import numpy as np
 
 def gradient(coordinates, charges):
     """Computes the gradient."""
-    number_coordinates = len(coordinates)
-    eval_E = np.zeros_like(coordinates)
-    for atom_a in range(number_coordinates):
-        for atom_b in range(number_coordinates):
-            if atom_a < atom_b:
-                cxc = charges[atom_a] * charges[atom_b]
+    g = np.zeros_like(coordinates)
 
-                xyz_32 = (
-                    np.linalg.norm(coordinates[atom_a, :] - coordinates[atom_b, :]) ** 3
-                )
+    for A in range(charges.size):
+        for B in range(charges.size):
+            if A < B:
+                cxc = charges[A] * charges[B]
+                xyz_32 = np.linalg.norm(coordinates[A, :] - coordinates[B, :]) ** 3
+                g[A, :] -= (coordinates[A, :] - coordinates[B, :]) * cxc / xyz_32
+                g[B, :] -= g[A, :]
 
-                eval_E[atom_a, 0] += (
-                    -(coordinates[atom_a, 0] - coordinates[atom_b, 0]) * cxc / xyz_32
-                )
+    return g
 
-                eval_E[atom_a, 1] += (
-                    -(coordinates[atom_a, 1] - coordinates[atom_b, 1]) * cxc / xyz_32
-                )
-                eval_E[atom_a, 2] += (
-                    -(coordinates[atom_a, 2] - coordinates[atom_b, 2]) * cxc / xyz_32
-                )
 
-                eval_E[atom_b, 0] += -eval_E[atom_a, 0]
-                eval_E[atom_b, 1] += -eval_E[atom_a, 1]
-                eval_E[atom_b, 2] += -eval_E[atom_a, 2]
+def hessian_redundant(coordinates, charges):
+    """Computes the Hessian in redundant format
 
-    return eval_E
+    Compute [3N*3N] second derivatives, rather than justs [3N*(3N+1)/2].
+    """
+    natoms = charges.size
+    gg = np.zeros((natoms, 3) * 2)
+    for A in range(charges.size):
+        for B in range(charges.size):
+            if A < B:
+                cxc = charges[A] * charges[B]
+                x_a = coordinates[A, 0]
+                y_a = coordinates[A, 1]
+                z_a = coordinates[A, 2]
+                x_b = coordinates[B, 0]
+                y_b = coordinates[B, 1]
+                z_b = coordinates[B, 2]
+
+                # distance between A and B
+                dist = np.linalg.norm(coordinates[A, :] - coordinates[B, :])
+                # third power of distance between A and B
+                dist_32 = np.linalg.norm(coordinates[A, :] - coordinates[B, :]) ** 3
+                # fifth power of distance between A and B
+                dist_52 = np.linalg.norm(coordinates[A, :] - coordinates[B, :]) ** 5
+
+                # AxAx
+                gg[A, 0, A, 0] += (3 * cxc * (x_a - x_b) ** 2 / dist_52) - cxc / dist_32
+                # AxAy and AyAx
+                gg[A, 0, A, 1] += (3 * cxc * (x_a - x_b) * (y_a - y_b)) / dist_52
+                gg[A, 1, A, 0] = gg[A, 0, A, 1]
+                # AxAz and AzAx
+                gg[A, 0, A, 2] += (3 * cxc * (x_a - x_b) * (z_a - z_b)) / dist_52
+                gg[A, 2, A, 0] = gg[A, 0, A, 2]
+                # AyAy
+                gg[A, 1, A, 1] += (3 * cxc * (y_a - y_b) ** 2 / dist_52) - cxc / dist_32
+                # AyAz and AzAy
+                gg[A, 1, A, 2] += (3 * cxc * (y_a - y_b) * (z_a - z_b)) / dist_52
+                gg[A, 2, A, 1] = gg[A, 1, A, 2]
+                # AzAz
+                gg[A, 2, A, 2] += (3 * cxc * (z_a - z_b) ** 2 / dist_52) - cxc / dist_32
+
+                # AxBx and BxAx
+                gg[A, 0, B, 0] += cxc / dist_32 - 3 * cxc * (x_a - x_b) ** 2 / dist_52
+                gg[B, 0, A, 0] = gg[A, 0, B, 0]
+                # AxBy, AyBx, ByAx, BxAy
+                gg[A, 0, B, 1] = -gg[A, 0, A, 1]
+                gg[A, 1, B, 0] = -gg[A, 0, A, 1]
+                gg[B, 1, A, 0] = -gg[A, 0, A, 1]
+                gg[B, 0, A, 1] = -gg[A, 0, A, 1]
+                # AxBz, AzBx, BzAx, BxAz
+                gg[A, 0, B, 2] = -gg[A, 0, A, 2]
+                gg[A, 2, B, 0] = -gg[A, 0, A, 2]
+                gg[B, 2, A, 0] = -gg[A, 0, A, 2]
+                gg[B, 0, A, 2] = -gg[A, 0, A, 2]
+                # AyBy and ByAy
+                gg[A, 1, B, 1] += cxc / dist_32 - (3 * cxc * (y_a - y_b) ** 2 / dist_52)
+                gg[B, 1, A, 1] = gg[A, 1, B, 1]
+                # AyBz, AzBy, ByAz, BzAy
+                gg[A, 1, B, 2] = -gg[A, 1, A, 2]
+                gg[A, 2, B, 1] = -gg[A, 1, A, 2]
+                gg[B, 1, A, 2] = -gg[A, 1, A, 2]
+                gg[B, 2, A, 1] = -gg[A, 1, A, 2]
+                # AzBz and BzAz
+                gg[A, 2, B, 2] += cxc / dist_32 - (3 * cxc * (z_a - z_b) ** 2 / dist_52)
+                gg[B, 2, A, 2] = gg[A, 2, B, 2]
+
+                # BxBx
+                gg[B, 0, B, 0] = gg[A, 0, A, 0]
+                # BxBy and ByBx
+                gg[B, 0, B, 1] = gg[A, 0, A, 1]
+                gg[B, 1, B, 0] = gg[A, 0, A, 1]
+                # BxBz and BzBx
+                gg[B, 0, B, 2] = gg[A, 0, A, 2]
+                gg[B, 2, B, 0] = gg[A, 0, A, 2]
+                # ByBy
+                gg[B, 1, B, 1] = gg[A, 1, A, 1]
+                # ByBz and BzBy
+                gg[B, 1, B, 2] = gg[A, 1, A, 2]
+                gg[B, 2, B, 1] = gg[A, 1, A, 2]
+                # BzBz
+                gg[B, 2, B, 2] = gg[A, 2, A, 2]
+
+    return gg
 
 
 def hessian(coordinates, charges):
     """Computes the Hessian."""
-    number_coordinates = len(coordinates)
+    natoms = charges.size
     eval_E = []
-    for atom_a in range(number_coordinates):
-        for atom_b in range(number_coordinates):
-            if atom_a < atom_b:
-                cxc = charges[atom_a] * charges[atom_b]
-                x_a = coordinates[atom_a, 0]
-                y_a = coordinates[atom_a, 1]
-                z_a = coordinates[atom_a, 2]
-                x_b = coordinates[atom_b, 0]
-                y_b = coordinates[atom_b, 1]
-                z_b = coordinates[atom_b, 2]
+    for A in range(charges.size):
+        for B in range(charges.size):
+            if A < B:
+                cxc = charges[A] * charges[B]
+                x_a = coordinates[A, 0]
+                y_a = coordinates[A, 1]
+                z_a = coordinates[A, 2]
+                x_b = coordinates[B, 0]
+                y_b = coordinates[B, 1]
+                z_b = coordinates[B, 2]
 
-                xyz_squared = (x_a - x_b) ** 2 + (y_a - y_b) ** 2 + (z_a - z_b) ** 2
+                # distance between A and B
+                dist = np.linalg.norm(coordinates[A, :] - coordinates[B, :])
+                # third power of distance between A and B
+                dist_32 = np.linalg.norm(coordinates[A, :] - coordinates[B, :]) ** 3
+                # fifth power of distance between A and B
+                dist_52 = np.linalg.norm(coordinates[A, :] - coordinates[B, :]) ** 5
 
-                d_axax = (
-                    3 * cxc * (x_a - x_b) ** 2 / xyz_squared ** (5 / 2)
-                ) - cxc / xyz_squared ** (3 / 2)
+                d_axax = (3 * cxc * (x_a - x_b) ** 2 / dist_52) - cxc / dist_32
 
-                d_axbx = cxc / xyz_squared ** (3 / 2) - 3 * cxc * (
-                    x_a - x_b
-                ) ** 2 / xyz_squared ** (5 / 2)
+                d_axbx = cxc / dist_32 - 3 * cxc * (x_a - x_b) ** 2 / dist_52
 
-                d_axay = (3 * cxc * (x_a - x_b) * (y_a - y_b)) / xyz_squared ** (5 / 2)
+                d_axay = (3 * cxc * (x_a - x_b) * (y_a - y_b)) / dist_52
                 d_axby = -d_axay
 
-                d_axaz = (3 * cxc * (x_a - x_b) * (z_a - z_b)) / xyz_squared ** (5 / 2)
+                d_axaz = (3 * cxc * (x_a - x_b) * (z_a - z_b)) / dist_52
                 d_axbz = -d_axaz
 
-                d_ayay = (
-                    3 * cxc * (y_a - y_b) ** 2 / xyz_squared ** (5 / 2)
-                ) - cxc / xyz_squared ** (3 / 2)
+                d_ayay = (3 * cxc * (y_a - y_b) ** 2 / dist_52) - cxc / dist_32
                 d_aybx = -d_axay
-                d_ayby = cxc / xyz_squared ** (3 / 2) - (
-                    3 * cxc * (y_a - y_b) ** 2 / xyz_squared ** (5 / 2)
-                )
+                d_ayby = cxc / dist_32 - (3 * cxc * (y_a - y_b) ** 2 / dist_52)
 
-                d_ayaz = (3 * cxc * (y_a - y_b) * (z_a - z_b)) / xyz_squared ** (5 / 2)
+                d_ayaz = (3 * cxc * (y_a - y_b) * (z_a - z_b)) / dist_52
                 d_aybz = -d_ayaz
-                d_azaz = (
-                    3 * cxc * (z_a - z_b) ** 2 / xyz_squared ** (5 / 2)
-                ) - cxc / xyz_squared ** (3 / 2)
+                d_azaz = (3 * cxc * (z_a - z_b) ** 2 / dist_52) - cxc / dist_32
                 d_azbx = -d_axaz
                 d_azby = -d_ayaz
-                d_azbz = cxc / xyz_squared ** (3 / 2) - (
-                    3 * cxc * (z_a - z_b) ** 2 / xyz_squared ** (5 / 2)
-                )
+                d_azbz = cxc / dist_32 - (3 * cxc * (z_a - z_b) ** 2 / dist_52)
                 d_bxbx = d_axax
                 d_bxby = d_axay
                 d_bxbz = d_axaz
