@@ -6,7 +6,7 @@ import numpy as np
 
 np.set_printoptions(linewidth=120)
 
-"""
+
 @pt.mark.parametrize(
     "coordinates, charges",
     [
@@ -39,7 +39,6 @@ def test_grad(coordinates, charges):
     ref_grad = analytical.gradient(coordinates, charges)
     jax_grad = jt3.get_grad(coordinates, charges)
     assert jax_grad == pt.approx(ref_grad)
-"""
 
 
 @pt.mark.parametrize(
@@ -72,8 +71,7 @@ def test_grad(coordinates, charges):
 )
 def test_hessian(coordinates, charges):
     ref_hess = analytical.hessian_redundant(coordinates, charges)
-    print(f"AAAAAAAA {ref_hess.shape}")
-    #print(f"ref_hess\n{ref_hess}")
+    print(f"ref_hess\n{ref_hess}")
     jax_hess = jt3.get_hessian(coordinates, charges)
-    #print(f"jax_hess\n{jax_hess}")
+    print(f"jax_hess\n{jax_hess}")
     assert jax_hess == pt.approx(ref_hess)
