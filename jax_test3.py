@@ -66,7 +66,7 @@ def get_grad(coordinates, charges):
         state[item] = 1  # change the array to the wanted derivation for the hessian
         eval_E = derv(
             E_NN,
-            [charges.size, charges, *(coordinates.reshape(3 * natoms).tolist())],
+            [charges.size, charges, *flat_coords],
             state,
         )
         gradient.append(eval_E)
