@@ -87,6 +87,7 @@ def get_hessian(coordinates, charges):
     # these will keep track whether we are on the x y or z coordinate
     i_xyz = 0
     a_xyz = 0
+    flat_coords = coordinates.reshape(3 * natoms)
     for i in range(2, len(state)):
         state[i] += 1  # change the item state
         for a in range(2, len(state)):
