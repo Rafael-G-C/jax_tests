@@ -94,7 +94,7 @@ def get_hessian(coordinates, charges):
             state[a] += 1
             eval_E = derv(
                 E_NN,
-                [charges.size, charges, *(coordinates.reshape(3 * natoms).tolist())],
+                [charges.size, charges, *flat_coords],
                 state,
             )
             # print(f"mapping to {(i-2)//3},{i_xyz},{(a-2)//3},{a_xyz}") METADATA
