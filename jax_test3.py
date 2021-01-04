@@ -61,6 +61,7 @@ def get_grad(coordinates, charges):
     state = np.zeros(
         2 + 3 * natoms, dtype=int
     )  # makes an array that derv can work with
+    flat_coords = coordinates.reshape(3 * natoms)
     for item in range(2, len(state)):
         state[item] = 1  # change the array to the wanted derivation for the hessian
         eval_E = derv(
