@@ -79,7 +79,7 @@ def _derv_plus(current, stop, state, dervs, charges, flat_coords):
 
 
 # this will generate the derivatives layer
-def get_derv(coordinates, charges, layer):
+def E_NN_derivatives(coordinates, charges, order):
     """
     0 = gradient, 1 = hessian, 2 = 3rd derivatives, etc...
     """
