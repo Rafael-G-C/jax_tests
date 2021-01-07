@@ -55,7 +55,7 @@ def E_NN(N, Zs, *Rs):
     return e_nn
 
 
-def derv_plus(current, stop, state, dervs, charges, flat_coords):
+def _derv_plus(current, stop, state, dervs, charges, flat_coords):
     if current != stop:
         current += 1
         for i in range(2, len(state)):
