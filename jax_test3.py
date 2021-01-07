@@ -97,9 +97,15 @@ def E_NN_derivatives(coordinates, charges, order):
 
 
 """
-coordinates = np.array([[1.0, 2.0, 3.0], [2.0, 1.0, 3.0]])
-charges = np.array([1.0, 1.0])
+coordinates = np.array(
+    [[-0.10142170869456, -0.07509332372525,  0.              ],
+     [-0.05369405529541,  1.75540922326286,  0.              ],
+     [ 1.66333017194447, -0.56362368204899,  0.              ]]
+    )
 
-grad_E = get_dervs(coordinates,charges,0)
+charges = np.array([8., 1., 1.])
+
+grad_E = get_derv(coordinates,charges,3)
 print(grad_E)
+
 """
