@@ -3,11 +3,11 @@ import os.path as osp
 import numpy as np
 
 
-def test_dervs(coordinates, charges, layer):
+def test_dervs(coordinates, charges, order):
     files = ["g_h2o.txt", "gg_h2o.txt", "ggg_h2o.txt", "gggg_h2o.txt"]
     natoms = len(charges)
-    a = np.loadtxt("tests/" + files[layer])
-    a = a.reshape((natoms, 3) * (layer + 1))
+    a = np.loadtxt("tests/" + files[order - 1])
+    a = a.reshape((natoms, 3) * order)
     return a
 
 

@@ -56,12 +56,12 @@ def E_NN(N, Zs, *Rs):
 
 
 def _derv_plus(current, stop, state, dervs, charges, flat_coords):
-    if current != stop:
-        current += 1
+    current += 1   
+    if current != stop:    
         for i in range(2, len(state)):
             state[i] += 1  # change the item state
 
-            derv_plus(current, stop, state, dervs, charges, flat_coords)
+            _derv_plus(current, stop, state, dervs, charges, flat_coords)
 
             state[i] -= 1
     else:
@@ -81,17 +81,17 @@ def _derv_plus(current, stop, state, dervs, charges, flat_coords):
 # this will generate the derivatives layer
 def E_NN_derivatives(coordinates, charges, order):
     """
-    0 = gradient, 1 = hessian, 2 = 3rd derivatives, etc...
+    1 --> gradient; 2 --> hessian; 3 --> 3rd derivatives; etc...
     """
     natoms = len(charges)
     state = np.zeros(2 + 3 * natoms, dtype=int)
     dervs = []
     flat_coords = coordinates.reshape(3 * natoms)
 
-    derv_plus(0, layer, state, dervs, charges, flat_coords)
+    _derv_plus(0, order, state, dervs, charges, flat_coords)
 
     dervs = np.array(dervs)
-    dervs = dervs.reshape((natoms, 3) * (layer + 1))
+    dervs = dervs.reshape((natoms, 3) * order)
 
     return dervs
 
