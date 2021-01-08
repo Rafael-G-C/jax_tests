@@ -90,8 +90,7 @@ def E_NN_derivatives(coordinates, charges, order):
 
     _derv_plus(0, order, state, dervs, charges, flat_coords)
 
-    dervs = np.array(dervs)
-    dervs = dervs.reshape((natoms, 3) * order)
+    dervs = np.array(dervs).reshape((natoms, 3) * order)
 
     return dervs
 
