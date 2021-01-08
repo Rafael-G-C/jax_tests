@@ -4,10 +4,8 @@ import numpy as np
 
 
 def test_dervs(coordinates, charges, order):
-    files = ["g_h2o.txt", "gg_h2o.txt", "ggg_h2o.txt", "gggg_h2o.txt"]
-    natoms = len(charges)
-    a = np.loadtxt("tests/" + files[order - 1])
-    a = a.reshape((natoms, 3) * order)
+    natoms = 3
+    a = np.loadtxt(f"tests/{'g' * order}_h2o.txt").reshape((natoms, 3) * order)
     return a
 
 
