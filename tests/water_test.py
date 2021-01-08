@@ -59,4 +59,4 @@ np.set_printoptions(linewidth=120)
 def test_dervs(coordinates, charges, order):
     ref_grad = w.test_dervs(coordinates, charges, order)
     jax_grad = jt3.E_NN_derivatives(coordinates, charges, order)
-    assert jax_grad == pt.approx(ref_grad, abs=1e-4)
+    assert jax_grad == pt.approx(ref_grad, rel=1e-5)
