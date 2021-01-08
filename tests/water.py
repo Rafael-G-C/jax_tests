@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def test_dervs(coordinates, charges, order):
+def reference_h2o_derivative(order):
     natoms = 3
     a = np.loadtxt(f"tests/{'g' * order}_h2o.txt").reshape((natoms, 3) * order)
     return a
