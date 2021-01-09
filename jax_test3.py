@@ -55,65 +55,56 @@ def E_NN(N, Zs, *Rs):
     return e_nn
 
 
-def get_grad(coordinates, charges):
-    gradient = []
-    natoms = len(charges)
-    state = np.zeros(
-        2 + 3 * natoms, dtype=int
-    )  # makes an array that derv can work with
-    flat_coords = coordinates.reshape(3 * natoms)
-    for item in range(2, len(state)):
-        state[item] = 1  # change the array to the wanted derivation for the hessian
-        eval_E = derv(
-            E_NN,
-            [charges.size, charges, *flat_coords],
-            state,
-        )
-        gradient.append(eval_E)
-        state[item] = 0  # reset array
+def _derv_plus(current, stop, state, dervs, charges, flat_coords):
+    current += 1   
+    if current != stop:    
+        for i in range(2, len(state)):
+            state[i] += 1  # change the item state
 
-    gradient = np.array(gradient)
-    gradient = gradient.reshape((natoms, 3))
-    return gradient
+            _derv_plus(current, stop, state, dervs, charges, flat_coords)
 
+            state[i] -= 1
+    else:
+        for i in range(2, len(state)):
+            state[i] += 1  # change the item state
 
-# this will generate the full hessian
-def get_hessian(coordinates, charges):
-    natoms = len(charges)
-    state = np.zeros(2 + 3 * natoms, dtype=int)
-    hessian = np.zeros(
-        (natoms, 3) * 2
-    )  # reshaping the hessian gave errors so here's created a priori
-    # these will keep track whether we are on the x y or z coordinate
-    i_xyz = 0
-    a_xyz = 0
-    flat_coords = coordinates.reshape(3 * natoms)
-    for i in range(2, len(state)):
-        state[i] += 1  # change the item state
-        for a in range(2, len(state)):
-            state[a] += 1
             eval_E = derv(
                 E_NN,
                 [charges.size, charges, *flat_coords],
                 state,
             )
-            # print(f"mapping to {(i-2)//3},{i_xyz},{(a-2)//3},{a_xyz}") METADATA
-            hessian[(i - 2) // 3, i_xyz, (a - 2) // 3, a_xyz] = eval_E
-            state[a] -= 1  # reset
-            a_xyz += 1  # change x y z
-            a_xyz *= a_xyz != 3  # reset if more than 2 (z)
+            dervs.append(eval_E)
 
-        state[i] -= 1
-        i_xyz += 1
-        i_xyz *= i_xyz != 3
+            state[i] -= 1
 
-    return hessian
+
+# this will generate the derivatives layer
+def E_NN_derivatives(coordinates, charges, order):
+    """
+    1 --> gradient; 2 --> hessian; 3 --> 3rd derivatives; etc...
+    """
+    natoms = len(charges)
+    state = np.zeros(2 + 3 * natoms, dtype=int)
+    dervs = []
+    flat_coords = coordinates.reshape(3 * natoms)
+
+    _derv_plus(0, order, state, dervs, charges, flat_coords)
+
+    dervs = np.array(dervs).reshape((natoms, 3) * order)
+
+    return dervs
 
 
 """
-coordinates = np.array([[1.0, 2.0, 3.0], [2.0, 1.0, 3.0]])
-charges = np.array([1.0, 1.0])
+coordinates = np.array(
+    [[-0.10142170869456, -0.07509332372525,  0.              ],
+     [-0.05369405529541,  1.75540922326286,  0.              ],
+     [ 1.66333017194447, -0.56362368204899,  0.              ]]
+    )
 
-grad_E = get_hessian(coordinates,charges)
+charges = np.array([8., 1., 1.])
+
+grad_E = get_derv(coordinates,charges,3)
 print(grad_E)
+
 """
