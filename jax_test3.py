@@ -1,3 +1,4 @@
+from itertools import product
 from jax.config import config
 import numpy as np
 
@@ -55,27 +56,11 @@ def E_NN(N, Zs, *Rs):
     return e_nn
 
 
-def _derv_plus(current, stop, state, dervs, charges, flat_coords):
-    current += 1   
-    if current != stop:    
-        for i in range(2, len(state)):
-            state[i] += 1  # change the item state
-
-            _derv_plus(current, stop, state, dervs, charges, flat_coords)
-
-            state[i] -= 1
-    else:
-        for i in range(2, len(state)):
-            state[i] += 1  # change the item state
-
-            eval_E = derv(
-                E_NN,
-                [charges.size, charges, *flat_coords],
-                state,
-            )
-            dervs.append(eval_E)
-
-            state[i] -= 1
+def distribute(indices, num_variables):
+    l = [0 for _ in range(num_variables)]
+    for index in indices:
+        l[index] += 1
+    return l
 
 
 # this will generate the derivatives layer
@@ -83,12 +68,18 @@ def E_NN_derivatives(coordinates, charges, order):
     """
     1 --> gradient; 2 --> hessian; 3 --> 3rd derivatives; etc...
     """
-    natoms = len(charges)
-    state = np.zeros(2 + 3 * natoms, dtype=int)
     dervs = []
+    natoms = len(charges)
     flat_coords = coordinates.reshape(3 * natoms)
+    num_variables = 3 * natoms
 
-    _derv_plus(0, order, state, dervs, charges, flat_coords)
+    combo = product(range(num_variables), repeat=order)
+    derivative_orders = map(lambda x: distribute(x, num_variables), combo)
+
+    for d_order in derivative_orders:
+        dervs.append(
+            derv(E_NN, [charges.size, charges, *flat_coords], 2 * [0] + d_order)
+        )
 
     dervs = np.array(dervs).reshape((natoms, 3) * order)
 
@@ -104,7 +95,6 @@ coordinates = np.array(
 
 charges = np.array([8., 1., 1.])
 
-grad_E = get_derv(coordinates,charges,3)
+grad_E = E_NN_derivatives(coordinates,charges,2)
 print(grad_E)
-
 """
